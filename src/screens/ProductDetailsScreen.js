@@ -3,11 +3,12 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Text, Button, Image, CheckBox, Icon } from 'react-native-elements';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../redux/cartSlice';
-import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 const ProductDetailsScreen = ({ route, navigation }) => {
     const { product } = route.params;
     const dispatch = useDispatch();
+    const { theme } = useTheme();
 
     const [quantity, setQuantity] = useState(1);
     const [selectedSides, setSelectedSides] = useState([]);
@@ -39,10 +40,6 @@ const ProductDetailsScreen = ({ route, navigation }) => {
     };
 
     const handleAddToCart = () => {
-        if (product.sides && product.sides.length > 0 && selectedSides.length === 0) {
-            // Optional: Force side selection logic if needed. For now allowing none.
-        }
-
         const itemToAdd = {
             ...product,
             quantity,
@@ -59,17 +56,17 @@ const ProductDetailsScreen = ({ route, navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <Image source={{ uri: product.image }} style={styles.image} />
                 <View style={styles.content}>
-                    <Text h3 style={styles.title}>{product.name}</Text>
-                    <Text style={styles.description}>{product.description}</Text>
-                    <Text h4 style={styles.price}>Base Price: R{product.price.toFixed(2)}</Text>
+                    <Text h3 style={[styles.title, { color: theme.colors.textPrimary }]}>{product.name}</Text>
+                    <Text style={[styles.description, { color: theme.colors.textSecondary }]}>{product.description}</Text>
+                    <Text h4 style={[styles.price, { color: theme.colors.primary }]}>Base Price: R{product.price.toFixed(2)}</Text>
 
                     {product.sides && product.sides.length > 0 && (
                         <View style={styles.section}>
-                            <Text h4 style={styles.sectionTitle}>Sides (Choose up to 2)</Text>
+                            <Text h4 style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>Sides (Choose up to 2)</Text>
                             {product.sides.map((side, index) => (
                                 <CheckBox
                                     key={index}
@@ -77,7 +74,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                                     checked={selectedSides.includes(side)}
                                     onPress={() => handleSideToggle(side)}
                                     containerStyle={styles.checkbox}
-                                    textStyle={styles.checkboxText}
+                                    textStyle={{ color: theme.colors.textSecondary }}
                                     checkedColor={theme.colors.primary}
                                 />
                             ))}
@@ -86,7 +83,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 
                     {product.extras && product.extras.length > 0 && (
                         <View style={styles.section}>
-                            <Text h4 style={styles.sectionTitle}>Extras</Text>
+                            <Text h4 style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>Extras</Text>
                             {product.extras.map((extra, index) => (
                                 <CheckBox
                                     key={index}
@@ -94,7 +91,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                                     checked={!!selectedExtras.find(e => e.name === extra.name)}
                                     onPress={() => handleExtraToggle(extra)}
                                     containerStyle={styles.checkbox}
-                                    textStyle={styles.checkboxText}
+                                    textStyle={{ color: theme.colors.textSecondary }}
                                     checkedColor={theme.colors.primary}
                                 />
                             ))}
@@ -102,7 +99,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                     )}
 
                     <View style={styles.quantityContainer}>
-                        <Text h4 style={styles.sectionTitle}>Quantity</Text>
+                        <Text h4 style={[styles.sectionTitle, { color: theme.colors.textPrimary }]}>Quantity</Text>
                         <View style={styles.quantityControls}>
                             <Icon
                                 name="minus-circle"
@@ -111,7 +108,7 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                                 size={40}
                                 onPress={() => setQuantity(Math.max(1, quantity - 1))}
                             />
-                            <Text style={styles.quantityText}>{quantity}</Text>
+                            <Text style={[styles.quantityText, { color: theme.colors.textPrimary }]}>{quantity}</Text>
                             <Icon
                                 name="plus-circle"
                                 type="font-awesome"
@@ -124,12 +121,15 @@ const ProductDetailsScreen = ({ route, navigation }) => {
                 </View>
             </ScrollView>
 
-            <View style={styles.footer}>
-                <Text style={styles.totalText}>Total: R{calculateTotal().toFixed(2)}</Text>
+            <View style={[styles.footer, { 
+                backgroundColor: theme.colors.cardBackground,
+                borderTopColor: theme.colors.border 
+            }]}>
+                <Text style={[styles.totalText, { color: theme.colors.textPrimary }]}>Total: R{calculateTotal().toFixed(2)}</Text>
                 <Button
                     title="Add to Cart"
                     onPress={handleAddToCart}
-                    buttonStyle={styles.addButton}
+                    buttonStyle={[styles.addButton, { backgroundColor: theme.colors.primary }]}
                     titleStyle={{ color: '#fff', fontWeight: 'bold' }}
                 />
             </View>
@@ -140,7 +140,6 @@ const ProductDetailsScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
     },
     scrollContainer: {
         paddingBottom: 100,
@@ -153,15 +152,13 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     title: {
-        color: theme.colors.textPrimary,
+        marginBottom: 10,
     },
     description: {
         fontSize: 16,
-        color: theme.colors.textSecondary,
         marginVertical: 10,
     },
     price: {
-        color: theme.colors.primary,
         marginBottom: 20,
     },
     section: {
@@ -170,17 +167,12 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         marginBottom: 10,
-        color: theme.colors.textPrimary,
     },
     checkbox: {
         backgroundColor: 'transparent',
         borderWidth: 0,
         padding: 0,
         marginBottom: 5,
-    },
-    checkboxText: {
-        color: theme.colors.textSecondary,
-        fontWeight: 'normal',
     },
     quantityContainer: {
         flexDirection: 'row',
@@ -196,17 +188,14 @@ const styles = StyleSheet.create({
     quantityText: {
         fontSize: 24,
         marginHorizontal: 20,
-        color: theme.colors.textPrimary,
     },
     footer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: theme.colors.cardBackground,
         padding: 15,
         borderTopWidth: 1,
-        borderTopColor: theme.colors.border,
         elevation: 10,
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -215,12 +204,10 @@ const styles = StyleSheet.create({
     totalText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: theme.colors.textPrimary,
     },
     addButton: {
         width: 150,
         borderRadius: 20,
-        backgroundColor: theme.colors.primary,
     },
 });
 

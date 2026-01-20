@@ -10,6 +10,11 @@ export const AuthService = {
   register: async (userData) => {
     await delay(1000);
     try {
+      // Prevent registration for admin
+      if (userData.email.toLowerCase() === 'admin@fooddelivery.com') {
+        throw new Error('Admin account cannot be registered. Please contact support.');
+      }
+
       const usersJson = await AsyncStorage.getItem(USERS_KEY);
       const users = usersJson ? JSON.parse(usersJson) : [];
 
@@ -20,10 +25,10 @@ export const AuthService = {
 
       const newUser = { ...userData, id: Date.now().toString() };
       users.push(newUser);
-      
+
       await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
       await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
-      
+
       return newUser;
     } catch (error) {
       throw error;
@@ -33,11 +38,28 @@ export const AuthService = {
   login: async (email, password) => {
     await delay(1000);
     try {
+      // Special handling for admin login
+      if (email.toLowerCase() === 'admin@fooddelivery.com') {
+        if (password === 'admin123') {
+          const adminUser = {
+            id: 'admin',
+            email: 'admin@fooddelivery.com',
+            name: 'Admin',
+            surname: 'User',
+            role: 'admin'
+          };
+          await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(adminUser));
+          return adminUser;
+        } else {
+          throw new Error('Invalid credentials');
+        }
+      }
+
       const usersJson = await AsyncStorage.getItem(USERS_KEY);
       const users = usersJson ? JSON.parse(usersJson) : [];
 
       const user = users.find((u) => u.email === email && u.password === password);
-      
+
       if (!user) {
         throw new Error('Invalid credentials');
       }
